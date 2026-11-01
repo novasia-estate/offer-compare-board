@@ -11,21 +11,22 @@
   function review(offer,asOf){
     date(asOf);if(!offer||typeof offer!=='object')throw Error('Offer must be an object.');
     const label=String(offer.label||'').trim();if(!label||label.length>120)throw Error('Give each offer a name, up to 120 characters.');
-    const currency=String(offer.currency||'');if(!/^[A-Z]{3}$/.test(currency))throw Error('Choose a three-letter currency label.');
-    const price=decimal(offer.price);if(price===0n)throw Error('Purchase price must be positive.');
-    const area=decimal(offer.area,4);if(area===0n)throw Error('Area must be positive.');
-    const fields=['transfer','fitout','other'],unknown=fields.filter(k=>offer[k]===null||offer[k]===undefined||String(offer[k]).trim()==='');
-    const fees=fields.map(k=>decimal(offer[k],2,false));const subtotal=price+fees.reduce((a,b)=>a+(b??0n),0n);
+    const currency=String(offer.currency||'');if(currency&&!/^[A-Z]{3}$/.test(currency))throw Error('Choose a three-letter currency label.');
+    const price=decimal(offer.price,2,false);if(price===0n)throw Error('Purchase price must be positive.');
+    const area=decimal(offer.area,4,false);if(area===0n)throw Error('Area must be positive.');
+    const fields=['transfer','fitout','other'],unknown=['price',...fields].filter(k=>offer[k]===null||offer[k]===undefined||String(offer[k]).trim()==='');
+    const fees=fields.map(k=>decimal(offer[k],2,false));const subtotal=price===null||!currency?null:price+fees.reduce((a,b)=>a+(b??0n),0n);
     const annual=decimal(offer.annual,2,false);let scheduled=null,due=null;
     if(offer.schedule!==undefined&&offer.schedule!==null&&String(offer.schedule).trim()!==''){
       const lines=String(offer.schedule).trim().split(/\r?\n/);if(lines.length>60)throw Error('At most 60 payment milestones per offer.');scheduled=0n;due=0n;
       for(const line of lines){const parts=line.split(',').map(x=>x.trim());if(parts.length!==2)throw Error('Each milestone is date,amount.');date(parts[0]);const n=decimal(parts[1]);scheduled+=n;if(parts[0]<=asOf)due+=n;}
+      if(price===null)throw Error('Enter a price before adding payment milestones.');
       if(scheduled!==price)throw Error('Milestones must add up exactly to the purchase price, excluding additional costs.');
     }
-    const unit=(price*10000n+area/2n)/area;
+    const unit=price===null||area===null||!currency?null:(price*10000n+area/2n)/area;
     return {label,currency,price:money(price),area:String(offer.area),knownSubtotal:money(subtotal),total:unknown.length?null:money(subtotal),unknown,pricePerSqm:money(unit),annual:money(annual),scheduled:money(scheduled),dueByDate:money(due),asOf};
   }
   function compare(offers,asOf){if(!Array.isArray(offers)||offers.length<2||offers.length>4)throw Error('Compare two to four offers.');return offers.map(o=>review(o,asOf));}
-  function csv(rows){const cell=x=>{let s=x===null||x===undefined?'Unknown':String(x);if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};const keys=['label','currency','price','area','pricePerSqm','knownSubtotal','total','annual','dueByDate','asOf'];return [keys,...rows.map(r=>keys.map(k=>r[k]))].map(r=>r.map(cell).join(',')).join('\r\n');}
+  function csv(rows){const cell=x=>{let s=x===null||x===undefined?'Unknown':String(x);if(/^(?:\s*[=+\-@]|[\t\r])/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};const keys=['label','unit','priceBasis','currency','price','area','pricePerSqm','knownSubtotal','total','annual','dueByDate','asOf','project','reference','referenceDate','notes'];return [keys,...rows.map(r=>keys.map(k=>r[k]))].map(r=>r.map(cell).join(',')).join('\r\n');}
   return {decimal,money,date,review,compare,csv};
 });

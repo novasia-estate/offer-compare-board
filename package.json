@@ -1,1 +1,22 @@
-{"name":"novasia-offer-compare-board","version":"1.0.0","private":true,"license":"MIT","description":"Property offer comparisons with explicit unknown costs and reconciled payment dates. By NovAsia Estate.","homepage":"https://novasia.estate/tools/offer-compare/","repository":{"type":"git","url":"https://github.com/novasia-estate/offer-compare-board.git"},"bugs":{"url":"https://github.com/novasia-estate/offer-compare-board/issues"},"scripts":{"test":"node --test tests.cjs","build":"node build.cjs"}}
+{
+  "name": "novasia-offer-compare-board",
+  "version": "2.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Property offer comparisons with explicit unknown costs and reconciled payment dates. By NovAsia Estate.",
+  "homepage": "https://novasia.estate/en/tools/offer-compare/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/novasia-estate/offer-compare-board.git"
+  },
+  "bugs": {
+    "url": "https://github.com/novasia-estate/offer-compare-board/issues"
+  },
+  "scripts": {
+    "test": "node --test tests.cjs integration-tests.cjs",
+    "build": "node build.cjs"
+  },
+  "devDependencies": {
+    "linkedom": "0.18.14"
+  }
+}
